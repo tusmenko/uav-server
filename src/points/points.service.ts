@@ -18,15 +18,12 @@ export class PointsService {
   private readonly data: Point[] = [];
 
   create(point: CreatePointDto): Point {
-    this.data.push(point);
-    // this.eventsProvider.populatePoint(point);
+    this.eventsProvider.populatePoint(JSON.stringify(point));
     return point;
   }
 
   test(data: any): void {
-    // this.data.push(data);
     this.eventsProvider.populatePoint(data);
-    // return point;
   }
 
   findOne(id: number): Point {
