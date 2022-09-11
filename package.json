@@ -1,8 +1,11 @@
 {
-  "name": "nest-typescript-starter",
+  "name": "uav-socket-server",
   "version": "1.0.0",
-  "description": "Nest TypeScript starter repository",
+  "description": "UAV data broadcast server",
   "license": "MIT",
+  "engines": {
+    "node": "16.13.1"
+  },
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
