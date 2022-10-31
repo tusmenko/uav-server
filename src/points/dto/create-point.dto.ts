@@ -14,23 +14,23 @@ export class CreatePointDto {
     example: "Sun, 11 Sep 2022 14:58:16 GMT",
     description: "UTC Time",
   })
-  readonly timestamp: Date;
+  readonly time: Date;
 
   @IsNumber()
   @ApiProperty({ example: `+15.9`, description: "UAV Altitude (±AAA.AAA)" })
-  readonly altitude: string;
+  readonly alt: string;
 
   @IsString()
   @ApiProperty({
     example: `+123456.7`,
     description: "UAV Lattitude (±DDMMSS.SSSS)",
   })
-  readonly lattitude: string;
+  readonly lat: string;
 
   @IsString()
   @ApiProperty({
     example: `-0985432.1`,
     description: "UAV Longtitute (±DDDMMSS.SSSS)",
   })
-  readonly longtitute: string;
+  readonly lon: string;
 }
