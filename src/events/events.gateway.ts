@@ -56,9 +56,9 @@ export class EventsGateway {
 
 const pointToMessage = (point: CreatePointRawDto): CreatePointDto => {
   const uid = point.droneid;
-  const lon = point.longitude.toString();
-  const lat = point.latitude.toString();
-  const alt = point.altitude.toString();
+  const lon = point.longitude?.toString() ?? "0";
+  const lat = point.latitude?.toString() ?? "0";
+  const alt = point.altitude?.toString() ?? "0";
 
   return {
     uid,
