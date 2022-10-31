@@ -18,19 +18,26 @@ export class CreatePointDto {
 
   @IsNumber()
   @ApiProperty({ example: `+15.9`, description: "UAV Altitude (±AAA.AAA)" })
-  readonly alt: string;
+  readonly alt: number;
 
   @IsString()
   @ApiProperty({
     example: `+123456.7`,
     description: "UAV Lattitude (±DDMMSS.SSSS)",
   })
-  readonly lat: string;
+  readonly lat: number;
 
   @IsString()
   @ApiProperty({
     example: `-0985432.1`,
     description: "UAV Longtitute (±DDDMMSS.SSSS)",
   })
-  readonly lon: string;
+  readonly lon: number;
+
+  @IsNumber()
+  @ApiProperty({
+    example: 303.4,
+    description: "UAV Heading",
+  })
+  readonly heading: number;
 }

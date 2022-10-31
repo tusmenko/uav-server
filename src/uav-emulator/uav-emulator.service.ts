@@ -6,7 +6,7 @@ import POSITIONS from "./data";
 
 const DEFAULT_UAV: Pick<CreatePointDto, "uid" | "alt"> = {
   uid: "023c1f03-94c3-4c39-91f2-8f69318f86c6",
-  alt: "15.9",
+  alt: 15.9,
 };
 
 @Injectable()
@@ -24,9 +24,10 @@ export class UavEmulatorService {
       const uav: CreatePointDto = {
         ...DEFAULT_UAV,
         time: new Date(),
-        lon: coordinates.longitude.toString(),
-        lat: coordinates.latitude.toString(),
-        alt: Math.round(Math.random() * 100).toString(),
+        lon: coordinates.longitude,
+        lat: coordinates.latitude,
+        alt: Math.round(Math.random() * 100),
+        heading: coordinates.heading,
       };
       this.lastPosition++;
       this.emulate(uav);
