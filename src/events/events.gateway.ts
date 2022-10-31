@@ -27,10 +27,12 @@ export class EventsGateway {
   }
 
   @SubscribeMessage("point")
+  @SubscribeMessage("mapsymbol")
   onPointEvent(
     @MessageBody() message: string,
     @ConnectedSocket() socket: Socket
   ): void {
+    console.log("Received point event:", message);
     const pointDto = JSON.parse(message);
     const point = pointToMessage(pointDto);
     socket.broadcast.emit("message", JSON.stringify(point));
