@@ -53,7 +53,6 @@ export class PointsService {
     const lon = point.longitude;
     const lat = point.latitude;
     const alt = point.altitude;
-    // const time = point.uav_time ? new Date(point.uav_time) : new Date();
     const time = new Date();
     const heading = point.heading;
 
@@ -66,14 +65,4 @@ export class PointsService {
       heading,
     };
   }
-
-  // calculateHeading(
-  //   currentPoint: CreatePointDto,
-  //   previousPoint: CreatePointDto
-  // ): number {
-  //   const x = currentPoint.lon - previousPoint.lon;
-  //   const y = currentPoint.lat - previousPoint.lat;
-  //   const heading = Math.atan2(y, x) * (180 / Math.PI);
-  //   return heading;
-  // }
 }
