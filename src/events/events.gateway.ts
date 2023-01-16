@@ -20,22 +20,6 @@ export class EventsGateway implements OnGatewayConnection {
 
   constructor(private readonly eventsService: EventsService) {}
 
-  @SubscribeMessage("message")
-  onMessageEvent(
-    @MessageBody() message: any,
-    @ConnectedSocket() socket: Socket
-  ): void {
-    socket.broadcast.emit("message", message);
-  }
-
-  @SubscribeMessage("point")
-  onPointEvent(
-    @MessageBody() message: string,
-    @ConnectedSocket() socket: Socket
-  ): void {
-    this.eventsService.handlePointEvent(message, socket);
-  }
-
   @SubscribeMessage("mapsymbol")
   onMapsymbolEvent(
     @MessageBody() message: string,
@@ -48,9 +32,5 @@ export class EventsGateway implements OnGatewayConnection {
     console.log(`Client connected: ${client.id}`);
     const events = await this.eventsService.getCachedEvents();
     client.emit("events", events);
-  }
-
-  async populatePoint(message: string): Promise<void> {
-    this.server.emit("message", message);
   }
 }
