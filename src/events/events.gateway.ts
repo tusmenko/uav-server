@@ -4,6 +4,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  OnGatewayConnection,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { EventsService } from "./events.service";
@@ -13,7 +14,7 @@ import { EventsService } from "./events.service";
     origin: "*",
   },
 })
-export class EventsGateway {
+export class EventsGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
 
@@ -41,6 +42,12 @@ export class EventsGateway {
     @ConnectedSocket() socket: Socket
   ): void {
     this.eventsService.handlePointEvent(message, socket);
+  }
+
+  async handleConnection(client: Socket): Promise<void> {
+    console.log(`Client connected: ${client.id}`);
+    const events = await this.eventsService.getCachedEvents();
+    client.emit("events", events);
   }
 
   async populatePoint(message: string): Promise<void> {

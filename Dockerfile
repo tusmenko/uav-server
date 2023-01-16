@@ -1,4 +1,5 @@
-FROM node:alpine
+FROM alpine:3.16
+ENV NODE_VERSION 16.19.0
 RUN apk add --update nodejs npm yarn
 WORKDIR /app
 ENV PORT=3000
