@@ -17,26 +17,6 @@ export class EventsService {
   private uavService: UavService;
   private eventGateweay: EventsGateway;
 
-  handleFound = (event: UavEvent) => {
-    console.warn("Found ", event.id);
-    this.eventGateweay.broadcastEvent(event);
-  };
-
-  handleIdle = (event: UavEvent) => {
-    console.info("Idle ", event.id);
-    this.eventGateweay.broadcastEvent(event);
-  };
-
-  handleLost = (event: UavEvent) => {
-    console.info("Lost ", event.id);
-    this.eventGateweay.broadcastEvent(event);
-  };
-
-  handleAltChange = (event: UavEvent) => {
-    console.warn("Alt ", event.id);
-    this.eventGateweay.broadcastEvent(event);
-  };
-
   async onModuleInit() {
     this.pointsService = await this.moduleRef.get(PointsService, {
       strict: false,
@@ -57,7 +37,10 @@ export class EventsService {
     this.uavService.onAltChange = this.handleAltChange;
   }
 
-  handlePointEvent = async (message: string, socket: Socket): Promise<void> => {
+  public handlePointEvent = async (
+    message: string,
+    socket: Socket
+  ): Promise<void> => {
     console.log("Received point event");
     let point: CreatePointDto;
 
@@ -65,19 +48,41 @@ export class EventsService {
       point = await this.handleMessage(message);
       const uav = this.uavService.getUav(point.uid);
       uav.handleEvent(point);
-      socket.broadcast.emit("message", JSON.stringify(point));
-    } catch {
-      socket.emit("error", "Invalid point");
+
+      socket.broadcast.emit("message", point);
+    } catch (error) {
+      console.error("Invalid point", message, error);
     }
   };
 
-  handleMessage = async (message: string): Promise<CreatePointDto> => {
+  public handleMessage = async (message: string): Promise<CreatePointDto> => {
     const pointDto = this.pointsService.parse(message);
     // TODO: implement caching
-    this.cacheService.save("events", new Date());
+    // this.cacheService.save("events", new Date());
     this.pointsService.validateRawPoint(pointDto);
     return this.pointsService.rawPointToPointDto(pointDto);
   };
 
-  getCachedEvents = async () => this.uavService.getEventsHistory();
+  public getCachedEvents = () => this.uavService.getEventsHistory();
+  public getUavStatuses = () => this.uavService.getUavStatuses();
+
+  private handleFound = (event: UavEvent) => {
+    console.info("Found ", event.id);
+    this.eventGateweay.broadcastEvent(event);
+  };
+
+  private handleIdle = (event: UavEvent) => {
+    console.info("Idle ", event.id);
+    this.eventGateweay.broadcastEvent(event);
+  };
+
+  private handleLost = (event: UavEvent) => {
+    console.info("Lost ", event.id);
+    this.eventGateweay.broadcastEvent(event);
+  };
+
+  private handleAltChange = (event: UavEvent) => {
+    console.info("Alt ", event.id);
+    this.eventGateweay.broadcastEvent(event);
+  };
 }

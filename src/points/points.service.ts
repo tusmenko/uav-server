@@ -4,7 +4,6 @@ import { CreatePointDto } from "./dto/create-point.dto";
 
 @Injectable()
 export class PointsService {
-
   parse(message: string): CreatePointRawDto {
     const pointDto = JSON.parse(message) as CreatePointRawDto;
     return pointDto;

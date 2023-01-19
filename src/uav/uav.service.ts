@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { UAV } from "./uav";
-import { UavEvent } from "./uav.interface";
+import { Status, UavEvent } from "./uav.interface";
 
 type UavEventHandler = (event: UavEvent) => void;
 
@@ -38,6 +38,13 @@ export class UavService {
       .reduce((acc, val) => ({ ...acc, [val.id]: val }), {});
     const deduplicated = Object.values(eventsObj) as UavEvent[];
     return deduplicated.sort((a, b) => a.time.getTime() - b.time.getTime());
+  }
+
+  getUavStatuses(): { [id: string]: Status } {
+    return [...this.uavs.values()].reduce(
+      (acc, val) => ({ ...acc, [val.getId()]: val.getStatus() }),
+      {}
+    );
   }
 
   @Cron(CronExpression.EVERY_5_SECONDS)

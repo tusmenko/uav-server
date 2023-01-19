@@ -115,6 +115,19 @@ export class UAV {
     return this.events.sort((a, b) => a.time.getTime() - b.time.getTime());
   }
 
+  public getId(): string {
+    return this.id;
+  }
+
+  public getStatus() {
+    return {
+      ...this.getLastPoint(),
+      status: this.status,
+      heading: this.getHeading(),
+      climb: this.getClimb(),
+    };
+  }
+
   private getIsNew(): boolean {
     if (this.points.length == 1) return true;
     if (this.points.length > 1) {
@@ -140,10 +153,10 @@ export class UAV {
   }
 
   private getHeading(): number {
-    const last = this.points[this.points.length];
+    const last = this.getLastPoint();
     if (last.heading) return last.heading;
 
-    const prev = this.getLastPoint();
+    const prev = this.points[this.points.length - 2];
     return getHeading(last, prev);
   }
 
