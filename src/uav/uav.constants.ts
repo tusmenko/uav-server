@@ -1,0 +1,4 @@
+export const CRITICAL_CLIMB = 50;
+export const INACTIVE_AFTER_MINUTES = 0.5;
+export const DISABLED_AFTER_MINUTES = 1;
+export const CONSIDER_NEW_AFTER_MINUTES = 1;

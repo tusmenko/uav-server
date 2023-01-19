@@ -24,7 +24,7 @@ export class PointsService {
 
   rawPointToPointDto(point: CreatePointRawDto): CreatePointDto {
     const uid = point.droneid;
-    const lon = point.longitude;
+    const lng = point.longitude;
     const lat = point.latitude;
     const alt = point.altitude;
     const time = new Date();
@@ -33,7 +33,7 @@ export class PointsService {
     return {
       uid,
       time,
-      lon,
+      lng,
       lat,
       alt,
       heading,

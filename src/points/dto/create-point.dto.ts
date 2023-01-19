@@ -32,7 +32,7 @@ export class CreatePointDto {
     example: `-0985432.1`,
     description: "UAV Longtitute (±DDDMMSS.SSSS)",
   })
-  readonly lon: number;
+  readonly lng: number;
 
   @IsNumber()
   @ApiProperty({
