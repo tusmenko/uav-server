@@ -127,7 +127,7 @@ export class UAV {
     );
     const archiveEvents = this.events
       .filter((e) => now - e.time.getTime() >= CLEAR_EVENTS_AFTER)
-      .filter((e) => e.type === "new");
+      .filter((e) => e.type !== "climb");
     this.events = [...archiveEvents, ...relevantEvents];
   }
 
