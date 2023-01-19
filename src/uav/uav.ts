@@ -1,21 +1,10 @@
 import { CreatePointDto } from "src/points/dto/create-point.dto";
 import {
-  CLEAR_EVENT_AFTER_MINUTES,
-  CONSIDER_NEW_AFTER_MINUTES,
-  CRITICAL_CLIMB,
-  DISABLED_AFTER_MINUTES,
-  INACTIVE_AFTER_MINUTES,
-  CLEAR_POINTS_AFTER_MINUTES,
-} from "./uav.constants";
-import {
   Status,
   UavEvent,
   UavEventHandler,
   UavPosition,
 } from "./uav.interface";
-
-const CLEAR_EVENTS_AFTER = CLEAR_EVENT_AFTER_MINUTES * 60 * 1000;
-const CLEAR_POINTS_AFTER = CLEAR_POINTS_AFTER_MINUTES * 60 * 1000;
 
 const getNewUavEvent = ({ uid, lat, lng, time }: UavPosition): UavEvent => {
   const id = `${uid}-${time.getTime()}-new`;
@@ -87,6 +76,16 @@ export class UAV {
   private onLost: UavEventHandler;
   private onAltChange: UavEventHandler;
 
+  CLEAR_EVENTS_AFTER =
+    Number(process.env.CLEAR_EVENT_AFTER_MINUTES) * 60 * 1000;
+  CLEAR_POINTS_AFTER =
+    Number(process.env.CLEAR_POINTS_AFTER_MINUTES) * 60 * 1000;
+  CRITICAL_CLIMB = Number(process.env.CRITICAL_CLIMB);
+  INACTIVE_AFTER = Number(process.env.INACTIVE_AFTER_MINUTES) * 60 * 1000;
+  DISABLED_AFTER = Number(process.env.DISABLED_AFTER_MINUTES) * 60 * 1000;
+  CONSIDER_NEW_AFTER =
+    Number(process.env.CONSIDER_NEW_AFTER_MINUTES) * 60 * 1000;
+
   constructor(
     id: string,
     onFound?: UavEventHandler,
@@ -95,7 +94,7 @@ export class UAV {
     onAltChange?: UavEventHandler
   ) {
     this.id = id;
-    this.status = "active";
+    this.status = "new";
     this.onFound = onFound;
     this.onIdle = onIdle;
     this.onLost = onLost;
@@ -111,7 +110,6 @@ export class UAV {
 
   public handleEvent(event: CreatePointDto): void {
     this.points.push(event);
-    this.status = "active";
     this.notifyIfClimbing();
     console.log("Event handled", this.id, this.points.length);
   }
@@ -122,21 +120,39 @@ export class UAV {
 
   public clearOldEvents(): void {
     const now = Date.now();
+    const eventsCountBefore = this.events.length;
+
     const relevantEvents = this.events.filter(
-      (e) => now - e.time.getTime() < CLEAR_EVENTS_AFTER
+      (e) => now - e.time.getTime() < this.CLEAR_EVENTS_AFTER
     );
+
     const archiveEvents = this.events
-      .filter((e) => now - e.time.getTime() >= CLEAR_EVENTS_AFTER)
+      .filter((e) => now - e.time.getTime() >= this.CLEAR_EVENTS_AFTER)
       .filter((e) => e.type !== "climb");
     this.events = [...archiveEvents, ...relevantEvents];
+
+    console.log(
+      "Events cleared",
+      this.id,
+      eventsCountBefore,
+      this.events.length
+    );
   }
 
   public clearOldPoints(): void {
     const now = Date.now();
+    const pointsCountBefore = this.points.length;
     const relevantPoints = this.points.filter(
-      (p) => now - p.time.getTime() < CLEAR_POINTS_AFTER
+      (p) => now - p.time.getTime() < this.CLEAR_POINTS_AFTER
     );
     this.points = relevantPoints;
+
+    console.log(
+      "Points cleared",
+      this.id,
+      pointsCountBefore,
+      this.points.length
+    );
   }
 
   public getId(): string {
@@ -158,7 +174,7 @@ export class UAV {
       const last = this.getLastPoint();
       const prev = this.points[this.points.length - 2];
       const inactiveTime = last.time.getTime() - prev.time.getTime();
-      const isNew = inactiveTime > CONSIDER_NEW_AFTER_MINUTES * 60 * 1000;
+      const isNew = inactiveTime > this.CONSIDER_NEW_AFTER;
       return isNew;
     }
     return false;
@@ -186,7 +202,7 @@ export class UAV {
 
   private getIsIdle(): boolean {
     const last = this.getLastPoint();
-    if (Date.now() - last.time.getTime() > INACTIVE_AFTER_MINUTES * 60 * 1000) {
+    if (Date.now() - last.time.getTime() > this.INACTIVE_AFTER) {
       return true;
     }
     return false;
@@ -194,7 +210,7 @@ export class UAV {
 
   private getIsLost(): boolean {
     const last = this.getLastPoint();
-    if (Date.now() - last.time.getTime() > DISABLED_AFTER_MINUTES * 60 * 1000) {
+    if (Date.now() - last.time.getTime() > this.DISABLED_AFTER) {
       return true;
     }
     return false;
@@ -202,8 +218,9 @@ export class UAV {
 
   private notifyIfNew(): void {
     const isNew = this.getIsNew();
-
-    if (isNew) {
+    if (!isNew) return;
+    if (this.status === "new") {
+      this.status = "active";
       const lastPoint = this.getLastPoint();
       const event = getNewUavEvent(lastPoint);
       this.events.push(event);
@@ -238,7 +255,7 @@ export class UAV {
   private notifyIfClimbing(): void {
     const climb = this.getClimb();
     //TODO: ensure only one climb event is sent per point
-    if (Math.abs(climb) > CRITICAL_CLIMB && this.status == "active") {
+    if (Math.abs(climb) > this.CRITICAL_CLIMB && this.status == "active") {
       const lastPoint = this.getLastPoint();
       const event = getCriticalClimbingEvent({ ...lastPoint, climb });
       this.events.push(event);

@@ -24,4 +24,4 @@ export interface UavEvent {
 }
 
 export type UavEventHandler = (event: UavEvent) => void;
-export type Status = "active" | "pending" | "inactive";
+export type Status = "new" | "active" | "pending" | "inactive";

@@ -49,10 +49,12 @@ export class UavService {
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   private publishUpdates(): void {
-    this.uavs.forEach((uav) => uav.publishUpdates());
+    this.uavs.forEach((uav) => {
+      uav.publishUpdates();
+    });
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   private clearEvents(): void {
     this.uavs.forEach((uav) => {
       uav.clearOldEvents();
