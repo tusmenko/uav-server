@@ -1,9 +1,11 @@
 import { CreatePointDto } from "src/points/dto/create-point.dto";
 import {
+  CLEAR_EVENT_AFTER_MINUTES,
   CONSIDER_NEW_AFTER_MINUTES,
   CRITICAL_CLIMB,
   DISABLED_AFTER_MINUTES,
   INACTIVE_AFTER_MINUTES,
+  CLEAR_POINTS_AFTER_MINUTES,
 } from "./uav.constants";
 import {
   Status,
@@ -11,6 +13,9 @@ import {
   UavEventHandler,
   UavPosition,
 } from "./uav.interface";
+
+const CLEAR_EVENTS_AFTER = CLEAR_EVENT_AFTER_MINUTES * 60 * 1000;
+const CLEAR_POINTS_AFTER = CLEAR_POINTS_AFTER_MINUTES * 60 * 1000;
 
 const getNewUavEvent = ({ uid, lat, lng, time }: UavPosition): UavEvent => {
   const id = `${uid}-${time.getTime()}-new`;
@@ -113,6 +118,25 @@ export class UAV {
 
   public getEvents(): UavEvent[] {
     return this.events.sort((a, b) => a.time.getTime() - b.time.getTime());
+  }
+
+  public clearOldEvents(): void {
+    const now = Date.now();
+    const relevantEvents = this.events.filter(
+      (e) => now - e.time.getTime() < CLEAR_EVENTS_AFTER
+    );
+    const archiveEvents = this.events
+      .filter((e) => now - e.time.getTime() >= CLEAR_EVENTS_AFTER)
+      .filter((e) => e.type === "new");
+    this.events = [...archiveEvents, ...relevantEvents];
+  }
+
+  public clearOldPoints(): void {
+    const now = Date.now();
+    const relevantPoints = this.points.filter(
+      (p) => now - p.time.getTime() < CLEAR_POINTS_AFTER
+    );
+    this.points = relevantPoints;
   }
 
   public getId(): string {

@@ -51,4 +51,12 @@ export class UavService {
   private publishUpdates(): void {
     this.uavs.forEach((uav) => uav.publishUpdates());
   }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  private clearEvents(): void {
+    this.uavs.forEach((uav) => {
+      uav.clearOldEvents();
+      uav.clearOldPoints();
+    });
+  }
 }
