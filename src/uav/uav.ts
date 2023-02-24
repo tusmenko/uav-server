@@ -115,7 +115,7 @@ export class UAV {
   }
 
   public getEvents(): UavEvent[] {
-    return this.events.sort((a, b) => a.time.getTime() - b.time.getTime());
+    return this.events.sort((a, b) => a?.time?.getTime() - b?.time?.getTime());
   }
 
   public clearOldEvents(): void {
@@ -123,12 +123,12 @@ export class UAV {
     const eventsCountBefore = this.events.length;
 
     const relevantEvents = this.events.filter(
-      (e) => now - e.time.getTime() < this.CLEAR_EVENTS_AFTER
+      (e) => now - e?.time.getTime() < this.CLEAR_EVENTS_AFTER
     );
 
     const archiveEvents = this.events
-      .filter((e) => now - e.time.getTime() >= this.CLEAR_EVENTS_AFTER)
-      .filter((e) => e.type !== "climb");
+      .filter((e) => now - e?.time.getTime() >= this.CLEAR_EVENTS_AFTER)
+      .filter((e) => e?.type !== "climb");
     this.events = [...archiveEvents, ...relevantEvents];
 
     console.log(
@@ -143,7 +143,7 @@ export class UAV {
     const now = Date.now();
     const pointsCountBefore = this.points.length;
     const relevantPoints = this.points.filter(
-      (p) => now - p.time.getTime() < this.CLEAR_POINTS_AFTER
+      (p) => now - p?.time?.getTime() < this.CLEAR_POINTS_AFTER
     );
     this.points = relevantPoints;
 
@@ -196,7 +196,7 @@ export class UAV {
 
   private getHeading(): number {
     const last = this.getLastPoint();
-    if (last.heading) return last.heading;
+    if (last && last.heading) return last.heading;
 
     const prev = this.points[this.points.length - 2];
     return getHeading(last, prev);
@@ -204,7 +204,7 @@ export class UAV {
 
   private getIsIdle(): boolean {
     const last = this.getLastPoint();
-    if (Date.now() - last.time.getTime() > this.INACTIVE_AFTER) {
+    if (last && Date.now() - last.time.getTime() > this.INACTIVE_AFTER) {
       return true;
     }
     return false;
@@ -212,7 +212,7 @@ export class UAV {
 
   private getIsLost(): boolean {
     const last = this.getLastPoint();
-    if (Date.now() - last.time.getTime() > this.DISABLED_AFTER) {
+    if (last && Date.now() - last.time.getTime() > this.DISABLED_AFTER) {
       return true;
     }
     return false;
