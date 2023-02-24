@@ -173,9 +173,11 @@ export class UAV {
     if (this.points.length > 1) {
       const last = this.getLastPoint();
       const prev = this.points[this.points.length - 2];
-      const inactiveTime = last.time.getTime() - prev.time.getTime();
-      const isNew = inactiveTime > this.CONSIDER_NEW_AFTER;
-      return isNew;
+      if (last && prev) {
+        const inactiveTime = last.time.getTime() - prev.time.getTime();
+        const isNew = inactiveTime > this.CONSIDER_NEW_AFTER;
+        return isNew;
+      }
     }
     return false;
   }
@@ -188,7 +190,7 @@ export class UAV {
     return climb;
   }
 
-  private getLastPoint(): CreatePointDto {
+  private getLastPoint() {
     return this.points[this.points.length - 1];
   }
 
