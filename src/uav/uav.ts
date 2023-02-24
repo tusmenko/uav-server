@@ -62,6 +62,7 @@ const getIdleUavEvent = ({ uid, lat, lng, time }: UavPosition): UavEvent => {
 };
 
 const getHeading = (last: CreatePointDto, prev: CreatePointDto): number => {
+  if (!last || !prev) return 0;
   return Math.atan2(last.lng - prev.lng, last.lat - prev.lat) * (180 / Math.PI);
 };
 
