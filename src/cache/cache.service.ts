@@ -62,7 +62,6 @@ export class CacheService {
       return [];
     }
     const keys = ((await store.keys<string>()) ?? []) as string[];
-    console.log("Event keys", keys);
     const uavEventsKeys = keys.filter((key) => key.startsWith(getEventKey(id)));
     const ordered = uavEventsKeys.sort().reverse();
     return ordered;
@@ -86,7 +85,6 @@ export class CacheService {
       return [];
     }
     const keys = ((await store.keys<string>()) ?? []) as string[];
-    console.log("All keys", keys);
     return keys;
   }
 }
