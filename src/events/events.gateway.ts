@@ -7,7 +7,7 @@ import {
   OnGatewayConnection,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { UavEvent } from "src/uav/uav.interface";
+import { UavEvent } from "uav/uav.interface";
 import { EventsService } from "./events.service";
 
 @WebSocketGateway({

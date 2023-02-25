@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { CacheService } from "src/cache/cache.service";
+import { CacheService } from "cache/cache.service";
 import { EventsGateway } from "./events.gateway";
 import { EventsService } from "./events.service";
 

@@ -1,4 +1,4 @@
-import { CreatePointDto } from "src/points/dto/create-point.dto";
+import { CreatePointDto } from "points/dto/create-point.dto";
 import {
   Status,
   UavEvent,
@@ -72,10 +72,10 @@ export class UAV {
   private points: CreatePointDto[] = [];
   private events: UavEvent[] = [];
 
-  private onFound: UavEventHandler;
-  private onIdle: UavEventHandler;
-  private onLost: UavEventHandler;
-  private onAltChange: UavEventHandler;
+  private onFound?: UavEventHandler;
+  private onIdle?: UavEventHandler;
+  private onLost?: UavEventHandler;
+  private onAltChange?: UavEventHandler;
 
   CLEAR_EVENTS_AFTER =
     Number(process.env.CLEAR_EVENT_AFTER_MINUTES) * 60 * 1000;
