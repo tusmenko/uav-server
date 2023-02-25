@@ -1,4 +1,4 @@
-import { CreatePointDto } from "src/points/dto/create-point.dto";
+import { CreatePointDto } from "points/dto/create-point.dto";
 import {
   Status,
   UavEvent,

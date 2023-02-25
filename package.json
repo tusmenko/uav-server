@@ -4,7 +4,7 @@
   "description": "UAV data broadcast server",
   "license": "MIT",
   "engines": {
-    "node": "18.12.1"
+    "node": "18.14.2"
   },
   "scripts": {
     "prebuild": "rimraf dist",

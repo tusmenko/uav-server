@@ -1,11 +1,11 @@
 import { Socket } from "socket.io";
-import { CreatePointDto } from "src/points/dto/create-point.dto";
+import { CreatePointDto } from "points/dto/create-point.dto";
 import { Injectable } from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
-import { PointsService } from "src/points/points.service";
-import { CacheService } from "src/cache/cache.service";
-import { UavService } from "src/uav/uav.service";
-import { UavEvent } from "src/uav/uav.interface";
+import { PointsService } from "points/points.service";
+import { CacheService } from "cache/cache.service";
+import { UavService } from "uav/uav.service";
+import { UavEvent } from "uav/uav.interface";
 import { EventsGateway } from "./events.gateway";
 
 @Injectable()
