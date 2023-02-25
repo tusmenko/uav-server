@@ -29,6 +29,14 @@ export class EventsGateway implements OnGatewayConnection {
     this.eventsService.handlePointEvent(message, socket);
   }
 
+  @SubscribeMessage("sensor")
+  onSensorEvent(
+    @MessageBody() message: string,
+    @ConnectedSocket() socket: Socket
+  ): void {
+    this.eventsService.handleSensorEvent(message, socket);
+  }
+
   // Consider distinguishing between Consumer and Producer connections
   // Only Client requires history and statuses
   async handleConnection(client: Socket): Promise<void> {

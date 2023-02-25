@@ -56,6 +56,13 @@ export class EventsService {
     return this.pointsService.rawPointToPointDto(pointDto);
   };
 
+  public handleSensorEvent = async (
+    message: string,
+    socket: Socket
+  ): Promise<void> => {
+    console.log(`Sensor event ${socket.id}`, message);
+  };
+
   public getCachedEvents = async () => await this.uavService.getEventsHistory();
   public getUavStatuses = async () => await this.uavService.getUavStatuses();
 
