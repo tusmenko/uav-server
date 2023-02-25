@@ -3,7 +3,6 @@ import { CreatePointDto } from "points/dto/create-point.dto";
 import { Injectable } from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
 import { PointsService } from "points/points.service";
-import { CacheService } from "cache/cache.service";
 import { UavService } from "uav/uav.service";
 import { UavEvent } from "uav/uav.interface";
 import { EventsGateway } from "./events.gateway";
@@ -13,15 +12,11 @@ export class EventsService {
   constructor(private moduleRef: ModuleRef) {}
 
   private pointsService: PointsService;
-  private cacheService: CacheService;
   private uavService: UavService;
   private eventGateweay: EventsGateway;
 
   async onModuleInit() {
     this.pointsService = this.moduleRef.get(PointsService, {
-      strict: false,
-    });
-    this.cacheService = this.moduleRef.get(CacheService, {
       strict: false,
     });
     this.uavService = this.moduleRef.get(UavService, {

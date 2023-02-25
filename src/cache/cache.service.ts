@@ -3,8 +3,6 @@ import { Cache } from "cache-manager";
 import { CreatePointDto } from "points/dto/create-point.dto";
 import { UavEvent } from "uav/uav.interface";
 
-const ONE_DAY = 60 * 60 * 24;
-
 export class CacheService {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 

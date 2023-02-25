@@ -1,9 +1,7 @@
-import { CACHE_MANAGER, Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { UAV } from "./uav";
 import { Status, UavEvent, UavPosition } from "./uav.interface";
-import { Cache } from "cache-manager";
-import { CreatePointDto } from "points/dto/create-point.dto";
 import { CacheService } from "cache/cache.service";
 import { ModuleRef } from "@nestjs/core";
 
@@ -62,7 +60,7 @@ export class UavService {
     return sorded;
   }
 
-  async getUavStatuses(): Promise<{ [id: string]: Status; }> {
+  async getUavStatuses(): Promise<{ [id: string]: Status }> {
     const uavs = [...this.uavs.values()];
     const statuses = await uavs.reduce(
       async (acc, uav) => ({ ...acc, [uav.getId()]: await uav.getStatus() }),
