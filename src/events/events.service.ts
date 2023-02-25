@@ -18,16 +18,16 @@ export class EventsService {
   private eventGateweay: EventsGateway;
 
   async onModuleInit() {
-    this.pointsService = await this.moduleRef.get(PointsService, {
+    this.pointsService = this.moduleRef.get(PointsService, {
       strict: false,
     });
-    this.cacheService = await this.moduleRef.get(CacheService, {
+    this.cacheService = this.moduleRef.get(CacheService, {
       strict: false,
     });
-    this.uavService = await this.moduleRef.get(UavService, {
+    this.uavService = this.moduleRef.get(UavService, {
       strict: false,
     });
-    this.eventGateweay = await this.moduleRef.get(EventsGateway, {
+    this.eventGateweay = this.moduleRef.get(EventsGateway, {
       strict: false,
     });
 

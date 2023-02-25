@@ -62,7 +62,6 @@ const getIdleUavEvent = ({ uid, lat, lng, time }: UavPosition): UavEvent => {
 };
 
 const getHeading = (last: CreatePointDto, prev: CreatePointDto): number => {
-  if (!last || !prev) return 0;
   return Math.atan2(last.lng - prev.lng, last.lat - prev.lat) * (180 / Math.PI);
 };
 
@@ -187,6 +186,7 @@ export class UAV {
     if (this.points.length < 2) return 0;
     const last = this.getLastPoint();
     const prev = this.points[this.points.length - 2];
+    if (!last || !prev) return 0;
     const climb = last.alt - prev.alt;
     return climb;
   }
@@ -200,6 +200,7 @@ export class UAV {
     if (last && last.heading) return last.heading;
 
     const prev = this.points[this.points.length - 2];
+    if (!last || !prev) return 0;
     return getHeading(last, prev);
   }
 
@@ -225,6 +226,7 @@ export class UAV {
     if (this.status === "new") {
       this.status = "active";
       const lastPoint = this.getLastPoint();
+      if (!lastPoint) return;
       const event = getNewUavEvent(lastPoint);
       this.events.push(event);
       this.onFound && this.onFound(event);
@@ -237,6 +239,7 @@ export class UAV {
     if (isLost && !isAlreadyLost) {
       this.status = "inactive";
       const lastPoint = this.getLastPoint();
+      if (!lastPoint) return;
       const event = getLostUavEvent(lastPoint);
       this.events.push(event);
       this.onLost && this.onLost(event);
@@ -249,6 +252,7 @@ export class UAV {
     if (isIdle && !isAlreadyIdle) {
       this.status = "pending";
       const lastPoint = this.getLastPoint();
+      if (!lastPoint) return;
       const event = getIdleUavEvent(lastPoint);
       this.events.push(event);
       this.onIdle && this.onIdle(event);
@@ -260,6 +264,7 @@ export class UAV {
     //TODO: ensure only one climb event is sent per point
     if (Math.abs(climb) > this.CRITICAL_CLIMB && this.status == "active") {
       const lastPoint = this.getLastPoint();
+      if (!lastPoint) return;
       const event = getCriticalClimbingEvent({ ...lastPoint, climb });
       this.events.push(event);
       this.onAltChange && this.onAltChange(event);
