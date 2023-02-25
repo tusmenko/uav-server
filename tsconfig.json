@@ -14,24 +14,10 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "strict": true,
-    // "forceConsistentCasingInFileNames": true,
-    // "noEmit": true,
-    // "esModuleInterop": true,
-    // "moduleResolution": "node",
-    // "isolatedModules": true,
-    // "noImplicitAny": true,
-    // "strictNullChecks": true,
-    // "strictFunctionTypes": true,
-    // "strictBindCallApply": true,
-    // "noImplicitThis": true,
-    // "useUnknownInCatchVariables": true,
-    // "alwaysStrict": true,
-    // "noUnusedParameters": true,
-    // "noImplicitReturns": true,
-    // "noUncheckedIndexedAccess": true,
     "strictPropertyInitialization": false,
   },
   "include": [
     "src/**/*"
-  ]
+  ],
+  "exclude": ["node_modules"]
 }
