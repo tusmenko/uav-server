@@ -47,7 +47,7 @@ export class EventsService {
     try {
       point = await this.handleMessage(message);
       const uav = this.uavService.getUav(point.uid);
-      uav.handleEvent(point);
+      uav?.handleEvent(point);
 
       socket.broadcast.emit("message", point);
     } catch (error) {

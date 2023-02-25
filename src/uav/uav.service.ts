@@ -14,7 +14,7 @@ export class UavService {
   onLost: UavEventHandler;
   onAltChange: UavEventHandler;
 
-  getUav(id: string): UAV {
+  getUav(id: string) {
     if (this.uavs.has(id)) {
       return this.uavs.get(id);
     } else {
@@ -31,7 +31,7 @@ export class UavService {
     }
   }
 
-  getEventsHistory(): UavEvent[] {
+  getEventsHistory() {
     const eventsObj = [...this.uavs.values()]
       .map((uav) => uav.getEvents())
       .flat()

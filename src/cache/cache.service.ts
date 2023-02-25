@@ -15,7 +15,7 @@ export class CacheService {
   };
 
   fetchAll = async (): Promise<any> => {
-    const keys = await this.cacheManager.store.keys();
-    return await Promise.all(keys.map((key) => this.cacheManager.get(key)));
+    // const keys = await this.cacheManager.store.keys();
+    // return await Promise.all(keys.map((key) => this.cacheManager.get(key)));
   };
 }
