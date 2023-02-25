@@ -37,7 +37,9 @@
     "reflect-metadata": "0.1.13",
     "rimraf": "3.0.2",
     "rxjs": "7.5.5",
-    "socket.io": "4.5.1"
+    "socket.io": "4.5.1",
+    "cache-manager-redis-store": "^2.0.0",
+    "redis": "4.2.0"
   },
   "devDependencies": {
     "@darraghor/eslint-plugin-nestjs-typed": "^3.18.1",
@@ -52,8 +54,6 @@
     "@types/ws": "8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "5.30.5",
-    "cache-manager": "^3.6.0",
-    "cache-manager-redis-store": "^2.0.0",
     "eslint": "^8.0.1",
     "eslint-config-prettier": "8.5.0",
     "eslint-config-standard-with-typescript": "^34.0.0",
@@ -62,7 +62,6 @@
     "eslint-plugin-promise": "^6.0.0",
     "jest": "28.1.2",
     "prettier": "2.7.1",
-    "redis": "4.2.0",
     "supertest": "6.2.4",
     "ts-jest": "28.0.5",
     "ts-loader": "9.3.1",
