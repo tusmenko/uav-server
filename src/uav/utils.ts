@@ -7,13 +7,13 @@ export const getNewUavEvent = ({
   lng,
   time,
 }: UavPosition): UavEvent => {
-  const id = `${uid}-${time.getTime()}-new`;
+  const id = `${uid}-${time}-new`;
   return {
     id,
     uid,
     position: { lat, lng },
     type: "new",
-    time: new Date(time),
+    time,
     kind: "alert",
   };
 };
@@ -25,13 +25,13 @@ export const getCriticalClimbingEvent = ({
   time,
   climb,
 }: UavPosition): UavEvent => {
-  const id = `${uid}-${time.getTime()}-climb`;
+  const id = `${uid}-${new Date(time).getTime()}-climb`;
   return {
     id,
     uid,
     position: { lat: lat, lng: lng },
     type: "climb",
-    time: new Date(time),
+    time,
     kind: "warning",
     climb,
   };
@@ -43,13 +43,13 @@ export const getLostUavEvent = ({
   lng,
   time,
 }: UavPosition): UavEvent => {
-  const id = `${uid}-${time.getTime()}-lost`;
+  const id = `${uid}-${time}-lost`;
   return {
     id,
     uid,
     position: { lat: lat, lng: lng },
     type: "lost",
-    time: new Date(time),
+    time,
     kind: "info",
   };
 };
@@ -60,13 +60,13 @@ export const getIdleUavEvent = ({
   lng,
   time,
 }: UavPosition): UavEvent => {
-  const id = `${uid}-${time.getTime()}-idle`;
+  const id = `${uid}-${time}-idle`;
   return {
     id,
     uid,
     position: { lat: lat, lng: lng },
     type: "idle",
-    time: new Date(time),
+    time,
     kind: "info",
   };
 };
@@ -79,4 +79,4 @@ export const getHeading = (
 };
 
 export const isOlderThan = (point: CreatePointDto, time: number): boolean =>
-  point.time.getTime() < time;
+  new Date(point.time).getTime() < time;

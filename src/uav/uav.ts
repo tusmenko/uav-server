@@ -83,7 +83,7 @@ export class UAV {
     if (points.length > 1) {
       const [last, prev] = await this.getLastTwoPoint();
       if (last && prev) {
-        const inactiveTime = last.time.getTime() - prev.time.getTime();
+        const inactiveTime = last.time - prev.time;
         const isNew = inactiveTime > this.CONSIDER_NEW_AFTER;
         return isNew;
       }

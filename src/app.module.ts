@@ -4,12 +4,18 @@ import { EventsModule } from "events/events.module";
 import { PointsModule } from "points/points.module";
 import { UavModule } from "uav/uav.module";
 import { ConfigModule } from "@nestjs/config";
+import * as redisStore from "cache-manager-redis-store";
 
 @Module({
   imports: [
     EventsModule,
     PointsModule,
-    CacheModule.register({ isGlobal: true }),
+    CacheModule.register({
+      store: redisStore,
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
+      isGlobal: true,
+    }),
     UavModule,
     ScheduleModule.forRoot(),
     ConfigModule.forRoot(),

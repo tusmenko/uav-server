@@ -26,7 +26,7 @@ export class PointsService {
     const lng = point.longitude;
     const lat = point.latitude;
     const alt = point.altitude;
-    const time = new Date();
+    const time = new Date().getTime();
     const heading = point.heading;
 
     return {

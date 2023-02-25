@@ -5,7 +5,7 @@ export interface GeoPosition {
 
 export interface UavPosition {
   uid: string;
-  time: Date;
+  time: number;
   lat: number;
   lng: number;
   climb?: number;
@@ -14,7 +14,7 @@ export interface UavPosition {
 export interface UavEvent {
   id: string;
   uid: string;
-  time: Date;
+  time: number;
   position: GeoPosition;
   kind: "alert" | "warning" | "info";
   type: "new" | "lost" | "idle" | "climb";
