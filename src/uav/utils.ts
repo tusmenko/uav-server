@@ -77,3 +77,6 @@ export const getHeading = (
 ): number => {
   return Math.atan2(last.lng - prev.lng, last.lat - prev.lat) * (180 / Math.PI);
 };
+
+export const isOlderThan = (point: CreatePointDto, time: number): boolean =>
+  point.time.getTime() < time;

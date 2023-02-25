@@ -57,14 +57,12 @@ export class EventsService {
 
   public handleMessage = async (message: string): Promise<CreatePointDto> => {
     const pointDto = this.pointsService.parse(message);
-    // TODO: implement caching
-    // this.cacheService.save("events", new Date());
     this.pointsService.validateRawPoint(pointDto);
     return this.pointsService.rawPointToPointDto(pointDto);
   };
 
-  public getCachedEvents = () => this.uavService.getEventsHistory();
-  public getUavStatuses = () => this.uavService.getUavStatuses();
+  public getCachedEvents = async () => await this.uavService.getEventsHistory();
+  public getUavStatuses = async () => await this.uavService.getUavStatuses();
 
   private handleFound = (event: UavEvent) => {
     console.info("Found ", event.id);

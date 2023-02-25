@@ -38,7 +38,7 @@ export class UavService {
         this.onFound,
         this.onIdle,
         this.onLost,
-        this.onAltChange,
+        this.onAltChange
       );
 
       this.uavs.set(id, uav);
@@ -46,34 +46,37 @@ export class UavService {
     }
   }
 
-  getEventsHistory() {
-    const eventsObj = [...this.uavs.values()]
-      .map((uav) => uav.getEvents())
-      .flat()
-      .reduce((acc, event) => ({ ...acc, [event.id]: event }), {});
-    const deduplicated = Object.values(eventsObj) as UavEvent[];
-    return deduplicated.sort((a, b) => a.time.getTime() - b.time.getTime());
-  }
-
-  getUavStatuses(): { [id: string]: Status } {
+  async getEventsHistory() {
     const uavs = [...this.uavs.values()];
-    return uavs.reduce(
-      (acc, uav) => ({ ...acc, [uav.getId()]: uav.getStatus() }),
+    const events = (
+      await Promise.all(uavs.map((uav) => uav.getEvents()))
+    ).flat();
+    const eventsObj = events.reduce(
+      (acc, event) => ({ ...acc, [event.id]: event }),
       {}
     );
+    const deduplicated = Object.values(eventsObj) as UavEvent[];
+    const sorded = deduplicated.sort(
+      (a, b) => a.time.getTime() - b.time.getTime()
+    );
+    console.log("Events history", sorded);
+    return sorded;
+  }
+
+  async getUavStatuses(): Promise<{ [id: string]: Status; }> {
+    const uavs = [...this.uavs.values()];
+    const statuses = await uavs.reduce(
+      async (acc, uav) => ({ ...acc, [uav.getId()]: await uav.getStatus() }),
+      {}
+    );
+    console.log("UAV statuses", statuses);
+    return statuses;
   }
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   private publishUpdates(): void {
     this.uavs.forEach((uav) => {
       uav.publishUpdates();
-    });
-  }
-
-  @Cron(CronExpression.EVERY_HOUR)
-  private clearEvents(): void {
-    this.uavs.forEach((uav) => {
-      uav.clearOldEvents();
     });
   }
 }

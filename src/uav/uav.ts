@@ -6,13 +6,13 @@ import {
   getLostUavEvent,
   getIdleUavEvent,
   getCriticalClimbingEvent,
+  isOlderThan,
 } from "./utils";
 import { CacheService } from "cache/cache.service";
 
 export class UAV {
   private id: string;
   private status: Status;
-  private events: UavEvent[] = [];
 
   private onFound?: UavEventHandler;
   private onIdle?: UavEventHandler;
@@ -60,29 +60,8 @@ export class UAV {
     console.info("Event handled", this.id);
   }
 
-  public getEvents(): UavEvent[] {
-    return this.events.sort((a, b) => a?.time?.getTime() - b?.time?.getTime());
-  }
-
-  public clearOldEvents(): void {
-    const now = Date.now();
-    const eventsCountBefore = this.events.length;
-
-    const relevantEvents = this.events.filter(
-      (e) => now - e?.time.getTime() < this.CLEAR_EVENTS_AFTER
-    );
-
-    const archiveEvents = this.events
-      .filter((e) => now - e?.time.getTime() >= this.CLEAR_EVENTS_AFTER)
-      .filter((e) => e?.type !== "climb");
-    this.events = [...archiveEvents, ...relevantEvents];
-
-    console.log(
-      "Events cleared",
-      this.id,
-      eventsCountBefore,
-      this.events.length
-    );
+  public async getEvents(): Promise<UavEvent[]> {
+    return await this.store.getEvents(this.id);
   }
 
   public getId(): string {
@@ -94,8 +73,8 @@ export class UAV {
     return {
       ...last,
       status: this.status,
-      heading: this.getHeading(),
-      climb: this.getClimb(),
+      heading: await this.getHeading(),
+      climb: await this.getClimb(),
     };
   }
 
@@ -122,10 +101,7 @@ export class UAV {
 
   private async getLastTwoPoint() {
     // Assuming points are sorted by time desc
-    const points = await this.store.getPoints(this.id, 2);
-    const last = points[0];
-    const prev = points[1];
-    return [last, prev];
+    return await this.store.getPoints(this.id, 2);
   }
 
   private async getHeading(): Promise<number> {
@@ -137,18 +113,14 @@ export class UAV {
 
   private async getIsIdle(): Promise<boolean> {
     const [last] = await this.getLastTwoPoint();
-    if (last && Date.now() - last.time.getTime() > this.INACTIVE_AFTER) {
-      return true;
-    }
-    return false;
+    if (!last) return true;
+    return isOlderThan(last, this.INACTIVE_AFTER);
   }
 
   private async getIsLost(): Promise<boolean> {
     const [last] = await this.getLastTwoPoint();
-    if (last && Date.now() - last.time.getTime() > this.DISABLED_AFTER) {
-      return true;
-    }
-    return false;
+    if (!last) return true;
+    return isOlderThan(last, this.DISABLED_AFTER);
   }
 
   private async notifyIfNew(): Promise<void> {
@@ -159,7 +131,7 @@ export class UAV {
       const [last] = await this.getLastTwoPoint();
       if (!last) return;
       const event = getNewUavEvent(last);
-      this.events.push(event);
+      this.store.setEvent(this.id, event);
       this.onFound && this.onFound(event);
     }
   }
@@ -172,7 +144,7 @@ export class UAV {
       const [last] = await this.getLastTwoPoint();
       if (!last) return;
       const event = getLostUavEvent(last);
-      this.events.push(event);
+      this.store.setEvent(this.id, event);
       this.onLost && this.onLost(event);
     }
   }
@@ -185,7 +157,7 @@ export class UAV {
       const [last] = await this.getLastTwoPoint();
       if (!last) return;
       const event = getIdleUavEvent(last);
-      this.events.push(event);
+      this.store.setEvent(this.id, event);
       this.onIdle && this.onIdle(event);
     }
   }
@@ -197,7 +169,7 @@ export class UAV {
       const [last] = await this.getLastTwoPoint();
       if (!last) return;
       const event = getCriticalClimbingEvent({ ...last, climb });
-      this.events.push(event);
+      this.store.setEvent(this.id, event);
       this.onAltChange && this.onAltChange(event);
     }
   }

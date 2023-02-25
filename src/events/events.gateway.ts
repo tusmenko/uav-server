@@ -29,10 +29,12 @@ export class EventsGateway implements OnGatewayConnection {
     this.eventsService.handlePointEvent(message, socket);
   }
 
+  // Consider distinguishing between Consumer and Producer connections
+  // Only Client requires history and statuses
   async handleConnection(client: Socket): Promise<void> {
     console.log(`Client connected: ${client.id}`);
-    const events = this.eventsService.getCachedEvents();
-    const status = this.eventsService.getUavStatuses();
+    const events = await this.eventsService.getCachedEvents();
+    const status = await this.eventsService.getUavStatuses();
     client.emit("history", events);
     client.emit("statuses", status);
   }
