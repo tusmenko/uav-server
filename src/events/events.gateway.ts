@@ -31,8 +31,8 @@ export class EventsGateway implements OnGatewayConnection {
 
   async handleConnection(client: Socket): Promise<void> {
     console.log(`Client connected: ${client.id}`);
-    const events = await this.eventsService.getCachedEvents();
-    const status = await this.eventsService.getUavStatuses();
+    const events = this.eventsService.getCachedEvents();
+    const status = this.eventsService.getUavStatuses();
     client.emit("history", events);
     client.emit("statuses", status);
   }
