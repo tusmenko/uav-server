@@ -41,17 +41,17 @@ export class EventsService {
     message: string,
     socket: Socket
   ): Promise<void> => {
-    console.log("Received point event");
+    console.log(`Point from ${socket.id}`);
     let point: CreatePointDto;
 
     try {
       point = await this.handleMessage(message);
       const uav = this.uavService.getUav(point.uid);
       uav?.handleEvent(point);
-
       socket.broadcast.emit("message", point);
     } catch (error) {
-      console.error("Invalid point", message, error);
+      if (error instanceof Error)
+        console.error("Invalid point:", error.message, message);
     }
   };
 

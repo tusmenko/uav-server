@@ -35,6 +35,9 @@ export class EventsGateway implements OnGatewayConnection {
     console.log(`Client connected: ${client.id}`);
     const events = await this.eventsService.getCachedEvents();
     const status = await this.eventsService.getUavStatuses();
+    console.log(
+      `Provided ${events.length} events and ${Object.keys(status).length} uavs`
+    );
     client.emit("history", events);
     client.emit("statuses", status);
   }

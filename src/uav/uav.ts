@@ -48,7 +48,7 @@ export class UAV {
   }
 
   public publishUpdates(): void {
-    console.info("Updating", this.id, this.status);
+    console.info(`Status of ${this.id} => ${this.status}`);
     this.notifyIfNew();
     this.notifyIfIdle();
     this.notifyIfLost();
@@ -57,7 +57,6 @@ export class UAV {
   public handleEvent(event: CreatePointDto): void {
     this.store.setPoint(this.id, event);
     this.notifyIfClimbing();
-    console.info("Event handled", this.id);
   }
 
   public async getEvents(): Promise<UavEvent[]> {

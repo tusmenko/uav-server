@@ -59,7 +59,6 @@ export class UavService {
     const sorded = deduplicated.sort(
       (a, b) => a.time.getTime() - b.time.getTime()
     );
-    console.log("Events history", sorded);
     return sorded;
   }
 
@@ -69,7 +68,6 @@ export class UavService {
       async (acc, uav) => ({ ...acc, [uav.getId()]: await uav.getStatus() }),
       {}
     );
-    console.log("UAV statuses", statuses);
     return statuses;
   }
 
