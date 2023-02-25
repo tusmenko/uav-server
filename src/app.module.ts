@@ -12,8 +12,7 @@ import * as redisStore from "cache-manager-redis-store";
     PointsModule,
     CacheModule.register({
       store: redisStore,
-      host: process.env.REDIS_HOST,
-      port: process.env.REDIS_PORT,
+      url: process.env.REDIS_URL,
       isGlobal: true,
     }),
     UavModule,
