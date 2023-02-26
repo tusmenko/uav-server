@@ -3,9 +3,8 @@ import { CreatePointDto } from "points/dto/create-point.dto";
 import { Injectable } from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
 import { PointsService } from "points/points.service";
-import { CacheService } from "cache/cache.service";
 import { UavService } from "uav/uav.service";
-import { UavEvent } from "uav/uav.interface";
+import { UavEvent, UavPosition } from "uav/uav.interface";
 import { EventsGateway } from "./events.gateway";
 
 @Injectable()
@@ -13,15 +12,11 @@ export class EventsService {
   constructor(private moduleRef: ModuleRef) {}
 
   private pointsService: PointsService;
-  private cacheService: CacheService;
   private uavService: UavService;
   private eventGateweay: EventsGateway;
 
   async onModuleInit() {
     this.pointsService = this.moduleRef.get(PointsService, {
-      strict: false,
-    });
-    this.cacheService = this.moduleRef.get(CacheService, {
       strict: false,
     });
     this.uavService = this.moduleRef.get(UavService, {
@@ -35,36 +30,41 @@ export class EventsService {
     this.uavService.onIdle = this.handleIdle;
     this.uavService.onLost = this.handleLost;
     this.uavService.onAltChange = this.handleAltChange;
+    this.uavService.onPosition = this.handlePosition;
   }
 
   public handlePointEvent = async (
     message: string,
     socket: Socket
   ): Promise<void> => {
-    console.log("Received point event");
+    console.log(`Point from ${socket.id}`);
     let point: CreatePointDto;
 
     try {
       point = await this.handleMessage(message);
       const uav = this.uavService.getUav(point.uid);
       uav?.handleEvent(point);
-
-      socket.broadcast.emit("message", point);
     } catch (error) {
-      console.error("Invalid point", message, error);
+      if (error instanceof Error)
+        console.error("Invalid point:", error.message, message);
     }
   };
 
   public handleMessage = async (message: string): Promise<CreatePointDto> => {
     const pointDto = this.pointsService.parse(message);
-    // TODO: implement caching
-    // this.cacheService.save("events", new Date());
     this.pointsService.validateRawPoint(pointDto);
     return this.pointsService.rawPointToPointDto(pointDto);
   };
 
-  public getCachedEvents = () => this.uavService.getEventsHistory();
-  public getUavStatuses = () => this.uavService.getUavStatuses();
+  public handleSensorEvent = async (
+    message: string,
+    socket: Socket
+  ): Promise<void> => {
+    console.log(`Sensor event ${socket.id}`, message);
+  };
+
+  public getCachedEvents = async () => await this.uavService.getEventsHistory();
+  public getUavStatuses = async () => await this.uavService.getUavStatuses();
 
   private handleFound = (event: UavEvent) => {
     console.info("Found ", event.id);
@@ -84,5 +84,10 @@ export class EventsService {
   private handleAltChange = (event: UavEvent) => {
     console.info("Alt ", event.id);
     this.eventGateweay.broadcastEvent(event);
+  };
+
+  private handlePosition = (event: UavPosition) => {
+    console.info("Position ", event.uid);
+    this.eventGateweay.broadcastPosition(event);
   };
 }

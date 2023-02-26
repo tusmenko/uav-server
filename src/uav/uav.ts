@@ -1,80 +1,24 @@
 import { CreatePointDto } from "points/dto/create-point.dto";
+import { Status, UavEvent, UavEventHandler, UavPositionHandler } from "./uav.interface";
 import {
-  Status,
-  UavEvent,
-  UavEventHandler,
-  UavPosition,
-} from "./uav.interface";
-
-const getNewUavEvent = ({ uid, lat, lng, time }: UavPosition): UavEvent => {
-  const id = `${uid}-${time.getTime()}-new`;
-  return {
-    id,
-    uid,
-    position: { lat, lng },
-    type: "new",
-    time: new Date(time),
-    kind: "alert",
-  };
-};
-
-const getCriticalClimbingEvent = ({
-  uid,
-  lat,
-  lng,
-  time,
-  climb,
-}: UavPosition): UavEvent => {
-  const id = `${uid}-${time.getTime()}-climb`;
-  return {
-    id,
-    uid,
-    position: { lat: lat, lng: lng },
-    type: "climb",
-    time: new Date(time),
-    kind: "warning",
-    climb,
-  };
-};
-
-const getLostUavEvent = ({ uid, lat, lng, time }: UavPosition): UavEvent => {
-  const id = `${uid}-${time.getTime()}-lost`;
-  return {
-    id,
-    uid,
-    position: { lat: lat, lng: lng },
-    type: "lost",
-    time: new Date(time),
-    kind: "info",
-  };
-};
-
-const getIdleUavEvent = ({ uid, lat, lng, time }: UavPosition): UavEvent => {
-  const id = `${uid}-${time.getTime()}-idle`;
-  return {
-    id,
-    uid,
-    position: { lat: lat, lng: lng },
-    type: "idle",
-    time: new Date(time),
-    kind: "info",
-  };
-};
-
-const getHeading = (last: CreatePointDto, prev: CreatePointDto): number => {
-  return Math.atan2(last.lng - prev.lng, last.lat - prev.lat) * (180 / Math.PI);
-};
+  getHeading,
+  getNewUavEvent,
+  getLostUavEvent,
+  getIdleUavEvent,
+  getCriticalClimbingEvent,
+  isOlderThan,
+} from "./utils";
+import { CacheService } from "cache/cache.service";
 
 export class UAV {
   private id: string;
   private status: Status;
-  private points: CreatePointDto[] = [];
-  private events: UavEvent[] = [];
 
   private onFound?: UavEventHandler;
   private onIdle?: UavEventHandler;
   private onLost?: UavEventHandler;
   private onAltChange?: UavEventHandler;
+  private onPosition?: UavPositionHandler;
 
   CLEAR_EVENTS_AFTER =
     Number(process.env.CLEAR_EVENT_AFTER_MINUTES) * 60 * 1000;
@@ -85,96 +29,65 @@ export class UAV {
   DISABLED_AFTER = Number(process.env.DISABLED_AFTER_MINUTES) * 60 * 1000;
   CONSIDER_NEW_AFTER =
     Number(process.env.CONSIDER_NEW_AFTER_MINUTES) * 60 * 1000;
+  store: CacheService;
 
   constructor(
     id: string,
-    onFound?: UavEventHandler,
-    onIdle?: UavEventHandler,
-    onLost?: UavEventHandler,
-    onAltChange?: UavEventHandler
+    store: CacheService,
+    onPosition: UavPositionHandler,
+    onFound: UavEventHandler,
+    onIdle: UavEventHandler,
+    onLost: UavEventHandler,
+    onAltChange: UavEventHandler
   ) {
     this.id = id;
     this.status = "new";
+    this.store = store;
     this.onFound = onFound;
     this.onIdle = onIdle;
     this.onLost = onLost;
     this.onAltChange = onAltChange;
+    this.onPosition = onPosition;
   }
 
   public publishUpdates(): void {
-    console.log("Updating", this.id, this.status);
+    console.info(`Status of ${this.id} => ${this.status}`);
+    this.notifyPosition();
     this.notifyIfNew();
     this.notifyIfIdle();
     this.notifyIfLost();
+    this.notifyIfClimbing();
   }
 
   public handleEvent(event: CreatePointDto): void {
-    this.points.push(event);
-    this.notifyIfClimbing();
-    console.log("Event handled", this.id, this.points.length);
+    this.store.setPoint(this.id, event);
   }
 
-  public getEvents(): UavEvent[] {
-    return this.events.sort((a, b) => a?.time?.getTime() - b?.time?.getTime());
-  }
-
-  public clearOldEvents(): void {
-    const now = Date.now();
-    const eventsCountBefore = this.events.length;
-
-    const relevantEvents = this.events.filter(
-      (e) => now - e?.time.getTime() < this.CLEAR_EVENTS_AFTER
-    );
-
-    const archiveEvents = this.events
-      .filter((e) => now - e?.time.getTime() >= this.CLEAR_EVENTS_AFTER)
-      .filter((e) => e?.type !== "climb");
-    this.events = [...archiveEvents, ...relevantEvents];
-
-    console.log(
-      "Events cleared",
-      this.id,
-      eventsCountBefore,
-      this.events.length
-    );
-  }
-
-  public clearOldPoints(): void {
-    const now = Date.now();
-    const pointsCountBefore = this.points.length;
-    const relevantPoints = this.points.filter(
-      (p) => now - p?.time?.getTime() < this.CLEAR_POINTS_AFTER
-    );
-    this.points = relevantPoints;
-
-    console.log(
-      "Points cleared",
-      this.id,
-      pointsCountBefore,
-      this.points.length
-    );
+  public async getEvents(): Promise<UavEvent[]> {
+    return await this.store.getEvents(this.id);
   }
 
   public getId(): string {
     return this.id;
   }
 
-  public getStatus() {
+  public async getStatus() {
+    const [last] = await this.getLastTwoPoint();
     return {
-      ...this.getLastPoint(),
+      ...last,
       status: this.status,
-      heading: this.getHeading(),
-      climb: this.getClimb(),
+      heading: await this.getHeading(),
+      climb: await this.getClimb(),
     };
   }
 
-  private getIsNew(): boolean {
-    if (this.points.length == 1) return true;
-    if (this.points.length > 1) {
-      const last = this.getLastPoint();
-      const prev = this.points[this.points.length - 2];
+  private async getIsNew(): Promise<boolean> {
+    const points = await this.store.getPoints(this.id);
+    if (points.length == 1) return true;
+    if (points.length > 1) {
+      const [last, prev] = await this.getLastTwoPoint();
       if (last && prev) {
-        const inactiveTime = last.time.getTime() - prev.time.getTime();
+        const inactiveTime = last.time - prev.time;
         const isNew = inactiveTime > this.CONSIDER_NEW_AFTER;
         return isNew;
       }
@@ -182,91 +95,95 @@ export class UAV {
     return false;
   }
 
-  private getClimb(): number {
-    if (this.points.length < 2) return 0;
-    const last = this.getLastPoint();
-    const prev = this.points[this.points.length - 2];
+  private async getClimb(): Promise<number> {
+    const [last, prev] = await this.getLastTwoPoint();
     if (!last || !prev) return 0;
     const climb = last.alt - prev.alt;
     return climb;
   }
 
-  private getLastPoint() {
-    return this.points[this.points.length - 1];
+  private async getLastTwoPoint() {
+    // Assuming points are sorted by time desc
+    return await this.store.getPoints(this.id, 2);
   }
 
-  private getHeading(): number {
-    const last = this.getLastPoint();
+  private async getHeading(): Promise<number> {
+    const [last, prev] = await this.getLastTwoPoint();
     if (last && last.heading) return last.heading;
-
-    const prev = this.points[this.points.length - 2];
     if (!last || !prev) return 0;
     return getHeading(last, prev);
   }
 
-  private getIsIdle(): boolean {
-    const last = this.getLastPoint();
-    if (last && Date.now() - last.time.getTime() > this.INACTIVE_AFTER) {
-      return true;
-    }
-    return false;
+  private async getIsIdle(): Promise<boolean> {
+    const [last] = await this.getLastTwoPoint();
+    if (!last) return true;
+    return isOlderThan(last, this.INACTIVE_AFTER);
   }
 
-  private getIsLost(): boolean {
-    const last = this.getLastPoint();
-    if (last && Date.now() - last.time.getTime() > this.DISABLED_AFTER) {
-      return true;
-    }
-    return false;
+  private async getIsLost(): Promise<boolean> {
+    const [last] = await this.getLastTwoPoint();
+    if (!last) return true;
+    return isOlderThan(last, this.DISABLED_AFTER);
   }
 
-  private notifyIfNew(): void {
+  private async notifyPosition(): Promise<void> {
+    const [last] = await this.getLastTwoPoint();
+    if (!last) return;
+    const event = {
+      ...last,
+      heading: await this.getHeading(),
+      climb: await this.getClimb(),
+    };
+    this.onPosition && this.onPosition(event);
+  }
+
+  private async notifyIfNew(): Promise<void> {
     const isNew = this.getIsNew();
     if (!isNew) return;
     if (this.status === "new") {
       this.status = "active";
-      const lastPoint = this.getLastPoint();
-      if (!lastPoint) return;
-      const event = getNewUavEvent(lastPoint);
-      this.events.push(event);
+      const [last] = await this.getLastTwoPoint();
+      if (!last) return;
+      const event = getNewUavEvent(last);
+      this.store.setEvent(this.id, event);
       this.onFound && this.onFound(event);
     }
   }
 
-  private notifyIfLost(): void {
-    const isLost = this.getIsLost();
+  private async notifyIfLost(): Promise<void> {
+    const isLost = await this.getIsLost();
     const isAlreadyLost = this.status == "inactive";
     if (isLost && !isAlreadyLost) {
       this.status = "inactive";
-      const lastPoint = this.getLastPoint();
-      if (!lastPoint) return;
-      const event = getLostUavEvent(lastPoint);
-      this.events.push(event);
+      const [last] = await this.getLastTwoPoint();
+      if (!last) return;
+      const event = getLostUavEvent(last);
+      this.store.setEvent(this.id, event);
       this.onLost && this.onLost(event);
     }
   }
 
-  private notifyIfIdle(): void {
-    const isIdle = this.getIsIdle();
+  private async notifyIfIdle(): Promise<void> {
+    const isIdle = await this.getIsIdle();
     const isAlreadyIdle = this.status == "pending" || this.status == "inactive";
     if (isIdle && !isAlreadyIdle) {
       this.status = "pending";
-      const lastPoint = this.getLastPoint();
-      if (!lastPoint) return;
-      const event = getIdleUavEvent(lastPoint);
-      this.events.push(event);
+      const [last] = await this.getLastTwoPoint();
+      if (!last) return;
+      const event = getIdleUavEvent(last);
+      this.store.setEvent(this.id, event);
       this.onIdle && this.onIdle(event);
     }
   }
 
-  private notifyIfClimbing(): void {
-    const climb = this.getClimb();
-    //TODO: ensure only one climb event is sent per point
+  private async notifyIfClimbing(): Promise<void> {
+    const climb = await this.getClimb();
+    // TODO: ensure only one climb event is sent per point
     if (Math.abs(climb) > this.CRITICAL_CLIMB && this.status == "active") {
-      const lastPoint = this.getLastPoint();
-      if (!lastPoint) return;
-      const event = getCriticalClimbingEvent({ ...lastPoint, climb });
-      this.events.push(event);
+      const [last] = await this.getLastTwoPoint();
+      if (!last) return;
+      const event = getCriticalClimbingEvent({ ...last, climb });
+      this.store.setEvent(this.id, event);
       this.onAltChange && this.onAltChange(event);
     }
   }

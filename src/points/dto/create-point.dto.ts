@@ -14,7 +14,7 @@ export class CreatePointDto {
     example: "Sun, 11 Sep 2022 14:58:16 GMT",
     description: "UTC Time",
   })
-  readonly time: Date;
+  readonly time: number;
 
   @IsNumber()
   @ApiProperty({ example: `+15.9`, description: "UAV Altitude (±AAA.AAA)" })
