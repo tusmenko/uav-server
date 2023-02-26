@@ -7,7 +7,7 @@ import {
   OnGatewayConnection,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { UavEvent } from "uav/uav.interface";
+import { UavEvent, UavPosition } from "uav/uav.interface";
 import { EventsService } from "./events.service";
 
 @WebSocketGateway({
@@ -50,7 +50,12 @@ export class EventsGateway implements OnGatewayConnection {
     client.emit("statuses", status);
   }
 
+  async broadcastPosition(event: UavPosition): Promise<void> {
+    this.server.emit("uav-position", event);
+  }
+  
   async broadcastEvent(event: UavEvent): Promise<void> {
+    console.log("Broadcasting event: " + event.type);
     this.server.emit("uav-event", event);
   }
 }

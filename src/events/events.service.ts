@@ -4,7 +4,7 @@ import { Injectable } from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
 import { PointsService } from "points/points.service";
 import { UavService } from "uav/uav.service";
-import { UavEvent } from "uav/uav.interface";
+import { UavEvent, UavPosition } from "uav/uav.interface";
 import { EventsGateway } from "./events.gateway";
 
 @Injectable()
@@ -30,6 +30,7 @@ export class EventsService {
     this.uavService.onIdle = this.handleIdle;
     this.uavService.onLost = this.handleLost;
     this.uavService.onAltChange = this.handleAltChange;
+    this.uavService.onPosition = this.handlePosition;
   }
 
   public handlePointEvent = async (
@@ -43,7 +44,6 @@ export class EventsService {
       point = await this.handleMessage(message);
       const uav = this.uavService.getUav(point.uid);
       uav?.handleEvent(point);
-      socket.broadcast.emit("message", point);
     } catch (error) {
       if (error instanceof Error)
         console.error("Invalid point:", error.message, message);
@@ -84,5 +84,10 @@ export class EventsService {
   private handleAltChange = (event: UavEvent) => {
     console.info("Alt ", event.id);
     this.eventGateweay.broadcastEvent(event);
+  };
+
+  private handlePosition = (event: UavPosition) => {
+    console.info("Position ", event.uid);
+    this.eventGateweay.broadcastPosition(event);
   };
 }

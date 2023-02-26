@@ -1,5 +1,5 @@
 import { CreatePointDto } from "points/dto/create-point.dto";
-import { Status, UavEvent, UavEventHandler } from "./uav.interface";
+import { Status, UavEvent, UavEventHandler, UavPositionHandler } from "./uav.interface";
 import {
   getHeading,
   getNewUavEvent,
@@ -18,6 +18,7 @@ export class UAV {
   private onIdle?: UavEventHandler;
   private onLost?: UavEventHandler;
   private onAltChange?: UavEventHandler;
+  private onPosition?: UavPositionHandler;
 
   CLEAR_EVENTS_AFTER =
     Number(process.env.CLEAR_EVENT_AFTER_MINUTES) * 60 * 1000;
@@ -33,6 +34,7 @@ export class UAV {
   constructor(
     id: string,
     store: CacheService,
+    onPosition: UavPositionHandler,
     onFound: UavEventHandler,
     onIdle: UavEventHandler,
     onLost: UavEventHandler,
@@ -45,18 +47,20 @@ export class UAV {
     this.onIdle = onIdle;
     this.onLost = onLost;
     this.onAltChange = onAltChange;
+    this.onPosition = onPosition;
   }
 
   public publishUpdates(): void {
     console.info(`Status of ${this.id} => ${this.status}`);
+    this.notifyPosition();
     this.notifyIfNew();
     this.notifyIfIdle();
     this.notifyIfLost();
+    this.notifyIfClimbing();
   }
 
   public handleEvent(event: CreatePointDto): void {
     this.store.setPoint(this.id, event);
-    this.notifyIfClimbing();
   }
 
   public async getEvents(): Promise<UavEvent[]> {
@@ -120,6 +124,17 @@ export class UAV {
     const [last] = await this.getLastTwoPoint();
     if (!last) return true;
     return isOlderThan(last, this.DISABLED_AFTER);
+  }
+
+  private async notifyPosition(): Promise<void> {
+    const [last] = await this.getLastTwoPoint();
+    if (!last) return;
+    const event = {
+      ...last,
+      heading: await this.getHeading(),
+      climb: await this.getClimb(),
+    };
+    this.onPosition && this.onPosition(event);
   }
 
   private async notifyIfNew(): Promise<void> {

@@ -22,6 +22,6 @@ export interface UavEvent {
   climb?: number;
   message?: string;
 }
-
+export type UavPositionHandler = (position: UavPosition) => void;
 export type UavEventHandler = (event: UavEvent) => void;
 export type Status = "new" | "active" | "pending" | "inactive";

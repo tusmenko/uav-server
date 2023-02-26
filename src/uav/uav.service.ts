@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { UAV } from "./uav";
-import { Status, UavEvent, UavPosition } from "./uav.interface";
+import { Status, UavEvent, UavPositionHandler } from "./uav.interface";
 import { CacheService } from "cache/cache.service";
 import { ModuleRef } from "@nestjs/core";
 
@@ -12,6 +12,7 @@ export class UavService {
   uavs = new Map<string, UAV>();
   cacheService: CacheService;
 
+  onPosition: UavPositionHandler;
   onFound: UavEventHandler;
   onIdle: UavEventHandler;
   onLost: UavEventHandler;
@@ -32,6 +33,7 @@ export class UavService {
       const uav = new UAV(
         id,
         this.cacheService,
+        this.onPosition,
         this.onFound,
         this.onIdle,
         this.onLost,
