@@ -1,5 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+// import { SentryService } from "@ntegral/nestjs-sentry";
 // import { RedisIoAdapter } from './adapters/redis-io.adapter';
 import { AppModule } from "./app.module";
 
@@ -14,6 +15,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup("docs", app, document);
 
+  // app.useLogger(SentryService.SentryServiceInstance());
   // const redisIoAdapter = new RedisIoAdapter(app);
   // await redisIoAdapter.connectToRedis();
   // app.useWebSocketAdapter(redisIoAdapter);
