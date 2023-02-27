@@ -14,6 +14,9 @@ import * as redisStore from "cache-manager-redis-store";
       store: redisStore,
       url: process.env.REDIS_URL,
       isGlobal: true,
+      tls: {
+        rejectUnauthorized: false
+      }
     }),
     UavModule,
     ScheduleModule.forRoot(),
