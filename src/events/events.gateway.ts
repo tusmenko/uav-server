@@ -53,7 +53,7 @@ export class EventsGateway implements OnGatewayConnection {
   async broadcastPosition(event: UavPosition): Promise<void> {
     this.server.emit("uav-position", event);
   }
-  
+
   async broadcastEvent(event: UavEvent): Promise<void> {
     console.log("Broadcasting event: " + event.type);
     this.server.emit("uav-event", event);

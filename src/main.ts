@@ -1,8 +1,8 @@
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-// import { SentryService } from "@ntegral/nestjs-sentry";
-// import { RedisIoAdapter } from './adapters/redis-io.adapter';
 import { AppModule } from "./app.module";
+import * as Sentry from "@sentry/node";
+import { AllExceptionFilter } from "all-exception.filter.ts";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +15,14 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup("docs", app, document);
 
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    debug: process.env.SENTRY_ENVIRONMENT == "development" ? true : false,
+    tracesSampleRate: 0.001,
+    environment: process.env.SENTRY_ENVIRONMENT,
+  });
+
+  app.useGlobalFilters(new AllExceptionFilter());
   // app.useLogger(SentryService.SentryServiceInstance());
   // const redisIoAdapter = new RedisIoAdapter(app);
   // await redisIoAdapter.connectToRedis();
